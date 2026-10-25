@@ -108,7 +108,7 @@ select{min-height:42px}
 <div class="wrap" id="app"></div>
 <script>
 /* ===== ตั้งค่า: วาง URL ของ Web app (ลงท้าย /exec) ที่ Deploy จาก Apps Script ===== */
-const API_URL="https://github.com/pediatricekh/khowen";
+const API_URL="https://script.google.com/macros/s/AKfycbw4T6EAIviRLKS9Tjsg-kZgwYj91AkEOVc0smVKrfdX2Y1eIk15HFLMSUNOw3VfpCQw/exec";
 /* ตัวแทน google.script.run: ส่ง POST แบบ text/plain (เลี่ยง CORS preflight) ไปที่ doPost */
 window.google={script:{run:(function(){
   function mk(ok,fail){return new Proxy({},{get(_,k){
