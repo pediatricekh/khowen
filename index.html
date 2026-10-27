@@ -114,6 +114,7 @@ select{min-height:42px}
 .tk{width:64px;aspect-ratio:1;border-radius:8px;border:1px solid;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
 .tk .w{font-size:11px;font-weight:600;opacity:.85}.tk .n{font-size:20px;font-weight:800;line-height:1.1}
 .tk .t{margin-top:3px;font-size:10px;font-weight:700;display:flex;align-items:center;gap:2px}.tk .t span{font-size:12px}
+.d.fixd{background:var(--pr2);border-color:var(--pr);color:var(--pr);cursor:default}
 .d.sel.sX,.d.sel.sS,.d.sel.sV{outline:0;border-width:2px;border-style:dashed}
 .d.sel.sX{background:var(--xb);border-color:var(--x);color:var(--x)}.d.sel.sS{background:var(--shb);border-color:var(--sh);color:var(--sh)}.d.sel.sV{background:var(--vb);border-color:var(--v);color:var(--v)}
 .d small b{font-size:11px;font-weight:400}
@@ -398,10 +399,12 @@ function cal(info,editable){
     const v=reqs[d]||"",dw=new Date(info.y,info.m-1,d).getDay();
     const full=editable&&L&&!v&&(mode==="S"?L.shortLeft[d]<1:(L.offLeft[d]<1||L.blocked.indexOf(d)>=0));
     const fx=S.user.code==="53133"&&!v?(dw>=1&&dw<=4?"10-16":dw===5?"12-16":dw===6?"8-20":"8-17"):"";
-    const isSel=editable&&sel.has(d),tv=v||(isSel?mode:"");
-    const cls=[v,isSel?"sel s"+mode:"",editable&&v&&saved[d]!==v?"pend":"",full?"full":""].join(" ");
-    const click=editable&&S.open?`onclick="tap(${d})"`:"disabled";
-    h+=`<button class="d ${cls}" ${click}><span>${d}</span><small>${tv?`<b>${TICON[tv][0]}</b>${TICON[tv][1]}`:fx}</small></button>`;
+    const fixd0=(S.user.fixed||[]).indexOf(dw)>=0;
+    const isSel=editable&&sel.has(d)&&!fixd0,tv=fixd0?"":(v||(isSel?mode:""));
+    const cls=[fixd0?"fixd":v,isSel?"sel s"+mode:"",editable&&v&&saved[d]!==v?"pend":"",full?"full":""].join(" ");
+    const fixd=(S.user.fixed||[]).indexOf(dw)>=0;
+    const click=editable&&S.open&&!fixd?`onclick="tap(${d})"`:"disabled";
+    h+=`<button class="d ${cls}" ${click}><span>${d}</span><small>${fixd0?`<b>🏡</b>Fix`:tv?`<b>${TICON[tv][0]}</b>${TICON[tv][1]}`:fx}</small></button>`;
   }
   return `<div class="cal">${h}</div>`;
 }
@@ -442,6 +445,7 @@ function render0(){
   <div class="g"><div class="card main"><div class="strip" id="strip">${chips}</div>
   <div class="top"><h2>${MN[vm.m-1]} ${vm.y+543}${vtag}</h2>${vstatus}</div>
     <div class="mu" style="margin:6px 0">ชั่วโมงบังคับ ${MN[vm.m-1]} ${vm.y+543}: <b>${S.user.admin?hrsLine(viewHours(vk)):(()=>{const h=viewHours(vk),v=h&&h[S.user.role==="RN"?"RN":S.user.role==="NA"?"NA":"PN"];return v?v+" ชม. ("+esc(S.user.role)+")":"ยังไม่กำหนด"})()}</b></div>
+    ${(S.user.fixed||[]).length?`<div class="mu" style="margin:0 0 6px">🏡 วันหยุดประจำของคุณ: ${S.user.fixed.map(i=>DOW[i]).join(", ")} (เห็นเฉพาะคุณ · ไม่นับโควต้า)</div>`:""}
     ${!isNext?`<div class="warn">เดือนนี้ดูอย่างเดียว · <button class="link" onclick="goM(${nx.y},${nx.m})">ไปเดือนที่ขอเวรได้ (${MN[nx.m-1]})</button></div>`:""}
     ${isNext&&!op?`<div class="warn">${why}</div>`:""}
     ${isNext&&op?`<div class="mu" style="margin:6px 0">1) แตะวันที่ได้หลายวัน 2) เลือกประเภท 3) กด Add</div>
