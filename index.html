@@ -1,18 +1,8 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
+<base target="_top">
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#2f7d6d">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="ขอเวร">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<title>ขอเวร</title>
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-
 <style>
 :root{--bg:#f6f8fb;--card:#fff;--tx:#1d2433;--mu:#667085;--bd:#e3e8ef;--pr:#2f7d6d;--pr2:#e3f3ef;--x:#d92d20;--xb:#fee4e2;--v:#b54708;--vb:#fef0c7;--sh:#6941c6;--shb:#ede9fe}
 @media (prefers-color-scheme:dark){:root{--bg:#121722;--card:#1b2230;--tx:#eef2f8;--mu:#9aa6b8;--bd:#2c3547;--pr:#5cc3ae;--pr2:#183a34;--x:#ff6b5e;--xb:#4a1f1b;--v:#f6b24f;--vb:#3a2a0f;--sh:#b9a5ff;--shb:#2a2149}}
@@ -125,24 +115,6 @@ select{min-height:42px}
 </head>
 <body>
 <div class="wrap" id="app"></div>
-<script>
-/* ===== ตั้งค่า: วาง URL ของ Web app (ลงท้าย /exec) ที่ Deploy จาก Apps Script ===== */
-const API_URL="https://script.google.com/macros/s/AKfycbw4T6EAIviRLKS9Tjsg-kZgwYj91AkEOVc0smVKrfdX2Y1eIk15HFLMSUNOw3VfpCQw/exec";
-/* ตัวแทน google.script.run: ส่ง POST แบบ text/plain (เลี่ยง CORS preflight) ไปที่ doPost */
-window.google={script:{run:(function(){
-  function mk(ok,fail){return new Proxy({},{get(_,k){
-    if(k==="withSuccessHandler")return f=>mk(f,fail);
-    if(k==="withFailureHandler")return f=>mk(ok,f);
-    return (...args)=>{
-      fetch(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({fn:k,args:args})})
-        .then(r=>r.json()).then(j=>{if(j&&j.error)throw new Error(j.error);ok&&ok(j.result)})
-        .catch(e=>fail?fail(e):console.error(e));
-    };
-  }})}
-  return mk(null,null);
-})()}};
-if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
-</script>
 <script>
 const DOW=["อา","จ","อ","พ","พฤ","ศ","ส"];
 const MN=["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
@@ -316,7 +288,7 @@ function adminSetCode(code,type){
 }
 function adminSetIdx(i,type){adminSetCode(DR[i].code,type)}
 function addFor(){
-  const s=SLg[+$("#asf").value];
+  const v=$("#asf").value,s=v===""?null:SLg[+v];
   if(!s){err="เลือกพนักงานก่อน";render();return}
   adminSetCode(s.code,$("#ast").value);
 }
@@ -332,7 +304,7 @@ function rosterCard(mo){
   <button class="btn alt" ${b} onclick="genRoster(true)">ตรวจเวรจากชีต (หลังแก้เอง)</button>`;
   if(RS&&RS.err)o+=`<div class="err">${esc(RS.err)}</div>`;
   if(RS&&RS.ok){
-    o+=`<div class="ok">${RS.checked?"ตรวจแล้ว":"จัดเวรเสร็จแล้ว"} · ดูตารางที่แท็บ “${esc(RS.sheet)}” ในชีต</div>`;
+    o+=`<div class="ok">${RS.checked?"ตรวจแล้ว":"จัดเวรเสร็จแล้ว"} · ดูตารางที่แท็บ “${esc(RS.sheet)}” · รายงานพิมพ์ (1 คน 2 บรรทัด) ที่แท็บ “${esc(RS.report||"")}”</div>`;
     o+=RS.alerts.length?`<div class="warn">⚠ แจ้งเตือน ${RS.alerts.length} รายการ:<br>${RS.alerts.map(esc).join("<br>")}</div>`:`<div class="ok" style="margin-top:8px">ไม่มีข้อแจ้งเตือน (ช่องเวรครบ และไม่มีใครทำงานติดกันเกิน 7 วัน)</div>`;
     o+=`<div class="tw"><table style="margin-top:10px"><tr><th>ชื่อ</th><th>ทำงาน</th><th>หยุด</th><th>ชม.</th><th>OT</th></tr>${RS.stats.map(s=>`<tr><td>${esc(s.name.split(" ")[0])}</td><td>${s.work}</td><td>${s.off}</td><td>${s.hours}</td><td>${s.required?s.ot:"–"}</td></tr>`).join("")}</table></div>`;
   }
@@ -356,7 +328,7 @@ function dayPanel(mo,rs){
   <div style="border-top:1px solid var(--bd);margin-top:14px;padding-top:10px"><h2>แก้ไข / เพิ่ม / ลบเวรแทนพนักงาน</h2>
   ${dr.length?dr.map((r,i)=>`<div class="row"><span>${esc(r.name)}</span><span><select onchange="adminSetIdx(${i},this.value)">${["X","S","V"].map(k=>`<option value="${k}" ${r.type===k?"selected":""}>${TYPES[k]}</option>`).join("")}</select> <button class="x" onclick="adminSetIdx(${i},null)" title="ลบ">✕</button></span></div>`).join(""):`<div class="mu">ยังไม่มีใครขอเวรวันนี้</div>`}
   <div class="mu" style="margin-top:8px">เพิ่มเวรให้พนักงาน (ถ้าพนักงานมีเวรวันนี้อยู่แล้วจะถูกแทนที่)</div>
-  <select id="asf">${SLg.map((s,i)=>`<option value="${i}">${esc(s.name)}</option>`).join("")}</select>
+  <select id="asf"><option value="">เลือกพนักงาน</option>${SLg.map((s,i)=>`<option value="${i}">${esc(s.name)}</option>`).join("")}</select>
   <select id="ast">${["X","S","V"].map(k=>`<option value="${k}">${TYPES[k]}</option>`).join("")}</select>
   <button class="btn alt" ${busy?"disabled":""} onclick="addFor()">＋ เพิ่มเวรวันนี้</button>
   <div class="mu" style="margin-top:6px">แอดมินแก้ได้แม้เกินโควต้า ระบบจะแจ้งเตือนถ้าเกิน</div></div>
